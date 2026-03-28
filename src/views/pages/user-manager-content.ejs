@@ -1,0 +1,73 @@
+<section class="panel">
+  <div class="panel-head">
+    <h2>Add User</h2>
+  </div>
+  <form id="createUserForm" class="create-form">
+    <label>
+      Name
+      <input name="name" type="text" required />
+    </label>
+    <label>
+      Email
+      <input name="email" type="email" required />
+    </label>
+    <label>
+      Password
+      <input name="password" type="password" minlength="8" required />
+    </label>
+    <button type="submit">Add User</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>Users</h2>
+    <button id="refreshBtn" type="button">Refresh</button>
+  </div>
+  <p id="message" class="message" aria-live="polite"></p>
+  <div class="table-wrap">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="usersBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<template id="userRowTemplate">
+  <tr>
+    <td class="user-name"></td>
+    <td class="user-email"></td>
+    <td class="actions">
+      <button class="btn-edit" type="button">Edit</button>
+      <button class="btn-delete" type="button">Delete</button>
+    </td>
+  </tr>
+</template>
+
+<dialog id="editModal" class="modal">
+  <form id="editUserForm" class="modal-form" method="dialog">
+    <h3>Edit User</h3>
+    <label>
+      Name
+      <input id="editName" name="name" type="text" required />
+    </label>
+    <label>
+      Email
+      <input id="editEmail" name="email" type="email" required />
+    </label>
+    <label>
+      New Password
+      <input id="editPassword" name="password" type="password" minlength="8" />
+    </label>
+    <div class="modal-actions">
+      <button type="button" id="cancelEditBtn" class="btn-secondary">Cancel</button>
+      <button type="submit">Save</button>
+    </div>
+  </form>
+</dialog>

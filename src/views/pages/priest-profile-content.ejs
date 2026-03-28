@@ -1,0 +1,285 @@
+<section id="priestProfileRoot" class="panel" data-priest-id="<%= priestId %>">
+  <div class="panel-head">
+    <h2>Hồ sơ Linh mục</h2>
+    <p id="profileMessage" class="profile-message" aria-live="polite"></p>
+  </div>
+
+  <nav class="profile-tabs" id="profileTabs" role="tablist">
+    <button type="button" class="tab-btn active" data-tab="personal">Cá nhân</button>
+    <button type="button" class="tab-btn" data-tab="family">Gia đình</button>
+    <button type="button" class="tab-btn" data-tab="education">Học vấn</button>
+    <button type="button" class="tab-btn" data-tab="sacraments">Bí tích</button>
+    <button type="button" class="tab-btn" data-tab="ordination">Truyền chức</button>
+    <button type="button" class="tab-btn" data-tab="transfer">Chuyển giáo phận</button>
+    <button type="button" class="tab-btn" data-tab="ministry">Sứ vụ</button>
+  </nav>
+
+  <form id="priestProfileForm">
+
+    <!-- TAB: Cá nhân -->
+    <fieldset class="tab-panel active" id="tab-personal">
+      <legend>Thông tin cá nhân</legend>
+      <div class="form-grid">
+        <label>
+          Tên thánh
+          <input name="saintName" type="text" />
+        </label>
+        <label>
+          Họ và tên <em>(bắt buộc)</em>
+          <input name="fullName" type="text" required />
+        </label>
+        <label>
+          Sinh ngày
+          <input name="dateOfBirth" type="date" />
+        </label>
+        <label>
+          Nơi sinh
+          <input name="placeOfBirth" type="text" />
+        </label>
+        <label>
+          Giáo họ
+          <input name="homeCommunity" type="text" />
+        </label>
+        <label>
+          Giáo xứ
+          <input name="homeParish" type="text" />
+        </label>
+        <label>
+          Giáo phận
+          <input name="diocese" type="text" />
+        </label>
+        <label class="col-span-2">
+          Hộ khẩu thường trú
+          <input name="permanentAddress" type="text" />
+        </label>
+        <label>
+          Số CCCD
+          <input name="nationalId" type="text" />
+        </label>
+        <label>
+          Số Passport
+          <input name="passport" type="text" />
+        </label>
+        <label class="col-span-2">
+          Số thẻ Bảo hiểm y tế
+          <input name="healthInsuranceId" type="text" />
+        </label>
+        <label>
+          Số điện thoại
+          <input name="phone" type="tel" />
+        </label>
+        <label>
+          Email
+          <input name="email" type="email" />
+        </label>
+        <label>
+          Qua đời ngày
+          <input name="dateOfDeath" type="date" />
+        </label>
+        <label>
+          Nơi qua đời
+          <input name="placeOfDeath" type="text" />
+        </label>
+        <label>
+          Ngày an táng
+          <input name="burialDate" type="date" />
+        </label>
+        <label>
+          Nơi an táng
+          <input name="placeOfBurial" type="text" />
+        </label>
+        <label>
+          Tình trạng
+          <select name="status">
+            <option value="active">Đang hoạt động</option>
+            <option value="inactive">Không hoạt động</option>
+            <option value="retired">Đã nghỉ hưu</option>
+          </select>
+        </label>
+        <label class="col-span-2">
+          Ghi chú
+          <textarea name="notes" rows="3"></textarea>
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- TAB: Gia đình -->
+    <fieldset class="tab-panel" id="tab-family">
+      <legend>Thông tin về Gia đình</legend>
+      <div class="form-grid">
+        <label>
+          Tên thánh, Họ tên cha
+          <input name="fatherName" type="text" />
+        </label>
+        <label>
+          Tên thánh, Họ tên mẹ
+          <input name="motherName" type="text" />
+        </label>
+        <label class="col-span-2">
+          Địa chỉ gia đình
+          <input name="familyAddress" type="text" />
+        </label>
+        <label>
+          Thuộc giáo họ
+          <input name="familyCommunity" type="text" />
+        </label>
+        <label>
+          Thuộc giáo xứ
+          <input name="familyParish" type="text" />
+        </label>
+      </div>
+      <div class="array-section">
+        <div class="array-section-head">
+          <h3>Anh chị em trong gia đình</h3>
+          <button type="button" id="addSiblingBtn" class="btn-add">+ Thêm</button>
+        </div>
+        <table class="array-table">
+          <thead>
+            <tr>
+              <th>Tên thánh, Họ tên</th>
+              <th>Năm sinh</th>
+              <th>Năm mất</th>
+              <th>Nghề nghiệp</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="siblingsBody"></tbody>
+        </table>
+      </div>
+    </fieldset>
+
+    <!-- TAB: Học vấn -->
+    <fieldset class="tab-panel" id="tab-education">
+      <legend>Thông tin Ơn gọi / Học vấn</legend>
+      <div class="array-section">
+        <div class="array-section-head">
+          <h3>Các trường Đại học / Cao đẳng / Đại Chủng viện đã học</h3>
+          <button type="button" id="addSchoolBtn" class="btn-add">+ Thêm trường</button>
+        </div>
+        <div id="schoolsList"></div>
+      </div>
+    </fieldset>
+
+    <!-- TAB: Bí tích -->
+    <fieldset class="tab-panel" id="tab-sacraments">
+      <legend>Thông tin Bí tích</legend>
+
+      <div class="sacrament-section">
+        <h3>Bí tích Rửa tội</h3>
+        <div class="form-grid">
+          <label>
+            Ngày Rửa tội
+            <input name="baptism.date" type="date" />
+          </label>
+          <label class="col-span-2">
+            Nơi rửa tội (Tên nhà thờ, địa chỉ)
+            <input name="baptism.place" type="text" />
+          </label>
+          <label>
+            Người rửa tội
+            <input name="baptism.minister" type="text" />
+          </label>
+          <label>
+            Người đỡ đầu
+            <input name="baptism.godparent" type="text" />
+          </label>
+        </div>
+      </div>
+
+      <div class="sacrament-section">
+        <h3>Bí tích Thêm sức</h3>
+        <div class="form-grid">
+          <label>
+            Ngày Thêm sức
+            <input name="confirmation.date" type="date" />
+          </label>
+          <label class="col-span-2">
+            Nơi Thêm sức (Tên nhà thờ, địa chỉ)
+            <input name="confirmation.place" type="text" />
+          </label>
+          <label>
+            Người ban bí tích Thêm sức
+            <input name="confirmation.minister" type="text" />
+          </label>
+          <label>
+            Người đỡ đầu
+            <input name="confirmation.godparent" type="text" />
+          </label>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- TAB: Truyền chức -->
+    <fieldset class="tab-panel" id="tab-ordination">
+      <legend>Thông tin Truyền chức</legend>
+
+      <div class="sacrament-section">
+        <h3>Truyền chức Phó tế</h3>
+        <div class="form-grid">
+          <label class="col-span-2">
+            Nơi chịu chức Phó tế (Tên nhà thờ, địa chỉ)
+            <input name="diaconate.place" type="text" />
+          </label>
+          <label>
+            Ngày chịu chức Phó tế
+            <input name="diaconate.date" type="date" />
+          </label>
+          <label>
+            Do Đức Giám mục
+            <input name="diaconate.bishop" type="text" />
+          </label>
+        </div>
+      </div>
+
+      <div class="sacrament-section">
+        <h3>Truyền chức Linh mục</h3>
+        <div class="form-grid">
+          <label class="col-span-2">
+            Nơi chịu chức Linh mục (Tên nhà thờ, địa chỉ)
+            <input name="priesthood.place" type="text" />
+          </label>
+          <label>
+            Ngày chịu chức Linh mục
+            <input name="priesthood.date" type="date" />
+          </label>
+          <label>
+            Do Đức Giám mục
+            <input name="priesthood.bishop" type="text" />
+          </label>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- TAB: Chuyển giáo phận -->
+    <fieldset class="tab-panel" id="tab-transfer">
+      <legend>Thông tin chuyển Giáo phận</legend>
+      <div class="form-grid">
+        <label class="col-span-2">
+          Linh mục gốc Giáo phận / Dòng tu
+          <input name="originalDiocese" type="text" />
+        </label>
+        <label>
+          Gia nhập TGP Hà Nội từ ngày
+          <input name="joinedDioceseDate" type="date" />
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- TAB: Sứ vụ -->
+    <fieldset class="tab-panel" id="tab-ministry">
+      <legend>Thông tin Giáo vụ — Lịch sử Sứ vụ</legend>
+      <div class="array-section">
+        <div class="array-section-head">
+          <h3>Danh sách sứ vụ</h3>
+          <button type="button" id="addMissionBtn" class="btn-add">+ Thêm sứ vụ</button>
+        </div>
+        <div id="missionsList"></div>
+      </div>
+    </fieldset>
+
+    <div class="profile-actions">
+      <button type="submit">Lưu thay đổi</button>
+      <button type="button" id="deletePriestBtn" class="btn-delete">Xóa hồ sơ</button>
+    </div>
+  </form>
+</section>

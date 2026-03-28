@@ -1,0 +1,127 @@
+.panel {
+  background: #fffaf2;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  filter: brightness(1.06);
+}
+
+.btn-secondary {
+  background: #7a756a;
+}
+
+.btn-delete {
+  background: #a4133c;
+}
+
+.message {
+  min-height: 1.25rem;
+  margin: 0.65rem 0;
+  font-weight: 600;
+}
+
+.message.ok {
+  color: #2a9d8f;
+}
+
+.message.error {
+  color: #c1121f;
+}
+
+.create-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.create-form label,
+.modal-form label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.9rem;
+}
+
+.create-form input,
+.modal-form input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem;
+  font-size: 0.95rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.users-table th,
+.users-table td {
+  text-align: left;
+  padding: 0.7rem;
+  border-bottom: 1px solid #efe6d8;
+}
+
+.users-table th {
+  background: #f3e6d0;
+}
+
+.actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.modal {
+  width: min(92vw, 420px);
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+}
+
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.modal-form {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .create-form {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,104 @@
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+button,
+.btn-link {
+  border: none;
+  border-radius: 10px;
+  padding: 0.55rem 0.95rem;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+}
+
+button:hover,
+.btn-link:hover {
+  filter: brightness(1.07);
+}
+
+.btn-delete {
+  background: #a4133c;
+}
+
+.priest-message {
+  min-height: 1.2rem;
+  margin: 0.6rem 0;
+  font-weight: 600;
+}
+
+.priest-message.ok {
+  color: #2a9d8f;
+}
+
+.priest-message.error {
+  color: #c1121f;
+}
+
+.priest-create-form {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 0.7rem;
+  align-items: end;
+}
+
+.priest-create-form label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.9rem;
+}
+
+.priest-create-form input,
+.priest-create-form select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.priests-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.priests-table th,
+.priests-table td {
+  text-align: left;
+  padding: 0.65rem;
+  border-bottom: 1px solid #efe6d8;
+}
+
+.priests-table th {
+  background: #f3e6d0;
+}
+
+.actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+@media (max-width: 840px) {
+  .priest-create-form {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .priest-create-form {
+    grid-template-columns: 1fr;
+  }
+}

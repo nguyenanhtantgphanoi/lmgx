@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/admin-layout.css" />
+  <% if (Array.isArray(styles)) { %>
+    <% styles.forEach(function(file) { %>
+      <link rel="stylesheet" href="/<%= file %>" />
+    <% }); %>
+  <% } %>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="brand">
+        <p class="brand-title">Parish Admin</p>
+        <p class="brand-subtitle">Control Center</p>
+      </div>
+      <nav class="admin-nav" aria-label="Admin navigation">
+        <% navItems.forEach(function(item) { %>
+          <a class="nav-link <%= item.path === activePath ? 'is-active' : '' %>" href="<%= item.path %>"><%= item.label %></a>
+        <% }); %>
+      </nav>
+    </aside>
+
+    <main class="admin-main">
+      <header class="topbar">
+        <h1><%= heading %></h1>
+        <p><%= subheading %></p>
+      </header>
+
+      <section class="content">
+        <%- include(pagePartial, pageData || {}) %>
+      </section>
+    </main>
+  </div>
+
+  <% if (Array.isArray(scripts)) { %>
+    <% scripts.forEach(function(file) { %>
+      <script src="/<%= file %>" defer></script>
+    <% }); %>
+  <% } %>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<section class="panel">
+  <div class="panel-head">
+    <h2>Thêm Linh mục</h2>
+  </div>
+  <form id="createPriestForm" class="priest-create-form">
+    <label>
+      Họ và tên <em>(bắt buộc)</em>
+      <input name="fullName" type="text" required />
+    </label>
+    <label>
+      Tình trạng
+      <select name="status">
+        <option value="active">Đang hoạt động</option>
+        <option value="inactive">Không hoạt động</option>
+        <option value="retired">Đã nghỉ hưu</option>
+      </select>
+    </label>
+    <button type="submit">Thêm Linh mục</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>Danh sách Linh mục</h2>
+    <button id="refreshPriestsBtn" type="button">Refresh</button>
+  </div>
+  <p id="priestMessage" class="priest-message" aria-live="polite"></p>
+  <div class="table-wrap">
+    <table class="priests-table">
+      <thead>
+        <tr>
+          <th>Họ và tên</th>
+          <th>Giáo phận</th>
+          <th>Điện thoại</th>
+          <th>Tình trạng</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="priestsBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<template id="priestRowTemplate">
+  <tr>
+    <td class="priest-full-name"></td>
+    <td class="priest-diocese"></td>
+    <td class="priest-phone"></td>
+    <td class="priest-status"></td>
+    <td class="actions">
+      <a class="btn-link" data-action="manage" href="#">Manage Profile</a>
+      <button class="btn-delete" data-action="delete" type="button">Delete</button>
+    </td>
+  </tr>
+</template>
