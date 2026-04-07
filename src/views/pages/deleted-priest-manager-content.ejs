@@ -1,0 +1,32 @@
+<section class="panel">
+  <div class="panel-head">
+    <h2>Deleted Priest Profiles</h2>
+    <button id="refreshDeletedPriestsBtn" type="button">Refresh</button>
+  </div>
+  <p id="deletedPriestMessage" class="priest-message" aria-live="polite"></p>
+  <div class="table-wrap">
+    <table class="priests-table">
+      <thead>
+        <tr>
+          <th>Họ và tên</th>
+          <th>Deleted By</th>
+          <th>Deleted At</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="deletedPriestsBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<template id="deletedPriestRowTemplate">
+  <tr>
+    <td class="priest-full-name"></td>
+    <td class="priest-deleted-by"></td>
+    <td class="priest-deleted-at"></td>
+    <td class="actions">
+      <button class="btn-link" data-action="restore" type="button">Restore</button>
+      <button class="btn-delete" data-action="permanent-delete" type="button">Delete Permanently</button>
+    </td>
+  </tr>
+</template>

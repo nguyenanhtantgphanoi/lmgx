@@ -43,7 +43,7 @@ async function createPriest(payload) {
 async function removePriest(priestId) {
   const response = await fetch(`/api/priests/${priestId}`, { method: 'DELETE' });
   if (!response.ok) {
-    throw new Error('Failed to delete priest');
+    throw new Error('Failed to move priest profile to deleted manager');
   }
 }
 
@@ -68,7 +68,9 @@ function renderPriests(priests) {
 
     const deleteBtn = fragment.querySelector('[data-action="delete"]');
     deleteBtn.addEventListener('click', async () => {
-      const confirmed = window.confirm(`Delete profile for ${priest.fullName}?`);
+      const confirmed = window.confirm(
+        `Move profile for ${priest.fullName} to Deleted Profiles?`
+      );
       if (!confirmed) {
         return;
       }
@@ -76,9 +78,9 @@ function renderPriests(priests) {
       try {
         await removePriest(priest._id);
         row.remove();
-        setMessage(`Deleted ${priest.fullName}.`, 'ok');
+        setMessage(`Moved ${priest.fullName} to Deleted Profiles.`, 'ok');
       } catch (error) {
-        setMessage(error.message || 'Unexpected error while deleting priest.', 'error');
+        setMessage(error.message || 'Unexpected error while moving priest profile.', 'error');
       }
     });
 

@@ -20,9 +20,23 @@
       </div>
       <nav class="admin-nav" aria-label="Admin navigation">
         <% navItems.forEach(function(item) { %>
-          <a class="nav-link <%= item.path === activePath ? 'is-active' : '' %>" href="<%= item.path %>"><%= item.label %></a>
+          <a
+            class="nav-link <%= item.path === activePath ? 'is-active' : '' %>"
+            href="<%= item.path %>"
+            data-nav-path="<%= item.path %>"
+          >
+            <span><%= item.label %></span>
+            <% if (item.path === '/deleted-priest-manager') { %>
+              <span id="deletedProfilesBadge" class="nav-badge" hidden>0</span>
+            <% } %>
+          </a>
         <% }); %>
       </nav>
+      <div class="sidebar-footer">
+        <form method="POST" action="/logout">
+          <button type="submit" class="btn-logout">Sign Out</button>
+        </form>
+      </div>
     </aside>
 
     <main class="admin-main">
@@ -42,5 +56,28 @@
       <script src="/<%= file %>" defer></script>
     <% }); %>
   <% } %>
+  <script>
+    window.addEventListener('DOMContentLoaded', async function () {
+      const badge = document.getElementById('deletedProfilesBadge');
+      if (!badge) return;
+
+      try {
+        const response = await fetch('/api/priests/deleted');
+        if (!response.ok) return;
+
+        const priests = await response.json();
+        const count = Array.isArray(priests) ? priests.length : 0;
+
+        if (count > 0) {
+          badge.textContent = String(count);
+          badge.hidden = false;
+        } else {
+          badge.hidden = true;
+        }
+      } catch (_error) {
+        badge.hidden = true;
+      }
+    });
+  </script>
 </body>
 </html>

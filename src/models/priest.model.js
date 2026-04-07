@@ -15,6 +15,7 @@ const degreeSchema = new mongoose.Schema(
 const schoolSchema = new mongoose.Schema(
   {
     schoolName: { type: String, trim: true, default: '' },
+    address:    { type: String, trim: true, default: '' },
     from:       { type: Date, default: null },
     to:         { type: Date, default: null },
     degrees:    { type: [degreeSchema], default: [] },
@@ -25,6 +26,7 @@ const schoolSchema = new mongoose.Schema(
 const siblingSchema = new mongoose.Schema(
   {
     saintAndFullName: { type: String, trim: true, default: '' },
+    gender:           { type: String, trim: true, default: '' },
     birthYear:        { type: Number, default: null },
     deathYear:        { type: Number, default: null },
     occupation:       { type: String, trim: true, default: '' },
@@ -57,7 +59,7 @@ const missionSchema = new mongoose.Schema(
     places:            { type: String, trim: true, default: '' },
     from:              { type: Date, default: null },
     to:                { type: Date, default: null },
-    appointmentLetter: { type: String, trim: true, default: '' },
+    appointmentLetters: { type: [String], default: [] },
   },
   { _id: false }
 );
@@ -67,14 +69,24 @@ const priestSchema = new mongoose.Schema(
     // Personal information
     saintName:         { type: String, trim: true, default: '' },
     fullName:          { type: String, required: true, trim: true },
+    avatarUrl:         { type: String, trim: true, default: '' },
+    storageFolder:     { type: String, trim: true, default: '' },
+    deletedAt:         { type: Date, default: null },
+    deletedBy:         { type: String, trim: true, default: '' },
     dateOfBirth:       { type: Date, default: null },
     placeOfBirth:      { type: String, trim: true, default: '' },
     homeCommunity:     { type: String, trim: true, default: '' },
     homeParish:        { type: String, trim: true, default: '' },
     diocese:           { type: String, trim: true, default: '' },
-    permanentAddress:  { type: String, trim: true, default: '' },
-    nationalId:        { type: String, trim: true, default: '' },
-    passport:          { type: String, trim: true, default: '' },
+    permanentAddress:          { type: String, trim: true, default: '' },
+    temporaryResidenceName:    { type: String, trim: true, default: '' },
+    temporaryResidenceAddress: { type: String, trim: true, default: '' },
+    nationalId:              { type: String, trim: true, default: '' },
+    nationalIdIssuedDate:    { type: Date, default: null },
+    nationalIdIssuedPlace:   { type: String, trim: true, default: '' },
+    passport:                { type: String, trim: true, default: '' },
+    passportIssuedDate:      { type: Date, default: null },
+    passportIssuedPlace:     { type: String, trim: true, default: '' },
     healthInsuranceId: { type: String, trim: true, default: '' },
     phone:             { type: String, trim: true, default: '' },
     email:             { type: String, trim: true, lowercase: true, default: undefined },

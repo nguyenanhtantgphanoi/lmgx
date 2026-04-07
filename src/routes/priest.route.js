@@ -1,9 +1,12 @@
 const {
   createPriestHandler,
   listPriestsHandler,
+  listDeletedPriestsHandler,
   getPriestByIdHandler,
   updatePriestProfileHandler,
   deletePriestHandler,
+  restorePriestHandler,
+  permanentlyDeletePriestHandler,
 } = require('../modules/priest/priest.controller');
 
 const priestBodySchema = {
@@ -13,14 +16,21 @@ const priestBodySchema = {
     // Personal
     saintName:         { type: 'string' },
     fullName:          { type: 'string', minLength: 1 },
+    avatarUrl:         { type: 'string' },
     dateOfBirth:       { type: 'string' },
     placeOfBirth:      { type: 'string' },
     homeCommunity:     { type: 'string' },
     homeParish:        { type: 'string' },
     diocese:           { type: 'string' },
     permanentAddress:  { type: 'string' },
+    temporaryResidenceName: { type: 'string' },
+    temporaryResidenceAddress: { type: 'string' },
     nationalId:        { type: 'string' },
+    nationalIdIssuedDate: { type: 'string' },
+    nationalIdIssuedPlace: { type: 'string' },
     passport:          { type: 'string' },
+    passportIssuedDate: { type: 'string' },
+    passportIssuedPlace: { type: 'string' },
     healthInsuranceId: { type: 'string' },
     phone:             { type: 'string' },
     email:             { type: 'string' },
@@ -56,6 +66,7 @@ const priestBodySchema = {
 
 async function priestRoutes(app) {
   app.get('/priests', listPriestsHandler);
+  app.get('/priests/deleted', listDeletedPriestsHandler);
 
   app.post('/priests', {
     schema: {
@@ -105,6 +116,30 @@ async function priestRoutes(app) {
       },
     },
   }, deletePriestHandler);
+
+  app.post('/priests/:id/restore', {
+    schema: {
+      params: {
+        type: 'object',
+        required: ['id'],
+        properties: {
+          id: { type: 'string', minLength: 1 },
+        },
+      },
+    },
+  }, restorePriestHandler);
+
+  app.delete('/priests/:id/permanent', {
+    schema: {
+      params: {
+        type: 'object',
+        required: ['id'],
+        properties: {
+          id: { type: 'string', minLength: 1 },
+        },
+      },
+    },
+  }, permanentlyDeletePriestHandler);
 }
 
 module.exports = priestRoutes;

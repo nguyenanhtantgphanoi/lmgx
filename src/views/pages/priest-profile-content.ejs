@@ -28,6 +28,21 @@
           Họ và tên <em>(bắt buộc)</em>
           <input name="fullName" type="text" required />
         </label>
+        <div class="col-span-2 avatar-upload">
+          <div class="avatar-preview-wrap">
+            <img id="avatarPreview" class="avatar-preview" alt="Priest avatar" />
+          </div>
+          <label class="avatar-input">
+            Ảnh đại diện
+            <input id="avatarFileInput" name="avatarFile" type="file" accept="image/*" />
+          </label>
+        </div>
+        <div class="col-span-2 avatar-library-wrap">
+          <div class="array-section-head">
+            <h3>Thư viện ảnh đại diện đã tải lên</h3>
+          </div>
+          <div id="avatarLibrary" class="avatar-library"></div>
+        </div>
         <label>
           Sinh ngày
           <input name="dateOfBirth" type="date" />
@@ -48,22 +63,6 @@
           Giáo phận
           <input name="diocese" type="text" />
         </label>
-        <label class="col-span-2">
-          Hộ khẩu thường trú
-          <input name="permanentAddress" type="text" />
-        </label>
-        <label>
-          Số CCCD
-          <input name="nationalId" type="text" />
-        </label>
-        <label>
-          Số Passport
-          <input name="passport" type="text" />
-        </label>
-        <label class="col-span-2">
-          Số thẻ Bảo hiểm y tế
-          <input name="healthInsuranceId" type="text" />
-        </label>
         <label>
           Số điện thoại
           <input name="phone" type="tel" />
@@ -71,6 +70,52 @@
         <label>
           Email
           <input name="email" type="email" />
+        </label>
+        <label class="col-span-2">
+          Hộ khẩu thường trú
+          <input name="permanentAddress" type="text" />
+        </label>
+        <label>
+          Tên nơi tạm trú
+          <input name="temporaryResidenceName" type="text" />
+        </label>
+        <label>
+          Địa chỉ tạm trú
+          <input name="temporaryResidenceAddress" type="text" />
+        </label>
+        <div class="col-span-2 id-group">
+          <div class="id-col">
+            <label>
+              Số CCCD
+              <input name="nationalId" type="text" />
+            </label>
+            <label>
+              Ngày cấp CCCD
+              <input name="nationalIdIssuedDate" type="date" />
+            </label>
+            <label>
+              Nơi cấp CCCD
+              <input name="nationalIdIssuedPlace" type="text" />
+            </label>
+          </div>
+          <div class="id-col">
+            <label>
+              Số Passport
+              <input name="passport" type="text" />
+            </label>
+            <label>
+              Ngày cấp Passport
+              <input name="passportIssuedDate" type="date" />
+            </label>
+            <label>
+              Nơi cấp Passport
+              <input name="passportIssuedPlace" type="text" />
+            </label>
+          </div>
+        </div>
+        <label class="col-span-2">
+          Số thẻ Bảo hiểm y tế
+          <input name="healthInsuranceId" type="text" />
         </label>
         <label>
           Qua đời ngày
@@ -137,6 +182,7 @@
           <thead>
             <tr>
               <th>Tên thánh, Họ tên</th>
+              <th>Giới tính</th>
               <th>Năm sinh</th>
               <th>Năm mất</th>
               <th>Nghề nghiệp</th>
@@ -282,4 +328,28 @@
       <button type="button" id="deletePriestBtn" class="btn-delete">Xóa hồ sơ</button>
     </div>
   </form>
+
+  <div id="identityVerifyModal" class="identity-modal" aria-hidden="true">
+    <div class="identity-modal-card" role="dialog" aria-modal="true" aria-labelledby="identityModalTitle">
+      <h3 id="identityModalTitle">Xác thực để xóa hồ sơ</h3>
+      <p>Vui lòng nhập tài khoản quản trị để xác nhận hành động này.</p>
+
+      <form id="identityVerifyForm" class="identity-form">
+        <label>
+          Username
+          <input id="identityVerifyUsername" name="username" type="text" autocomplete="username" required />
+        </label>
+        <label>
+          Password
+          <input id="identityVerifyPassword" name="password" type="password" autocomplete="current-password" required />
+        </label>
+        <p id="identityVerifyError" class="identity-error" aria-live="polite"></p>
+
+        <div class="identity-actions">
+          <button type="button" id="identityVerifyCancel" class="btn-cancel">Hủy</button>
+          <button type="submit" class="btn-verify">Xác nhận</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </section>

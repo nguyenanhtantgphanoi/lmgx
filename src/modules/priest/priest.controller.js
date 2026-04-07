@@ -37,6 +37,11 @@ async function listPriestsHandler(_request, reply) {
   return reply.send(priests);
 }
 
+async function listDeletedPriestsHandler(_request, reply) {
+  const priests = await priestService.listDeletedPriests();
+  return reply.send(priests);
+}
+
 async function getPriestByIdHandler(request, reply) {
   const priest = await priestService.getPriestById(request.params.id);
 
@@ -65,7 +70,8 @@ async function updatePriestProfileHandler(request, reply) {
 }
 
 async function deletePriestHandler(request, reply) {
-  const priest = await priestService.deletePriest(request.params.id);
+  const deletedBy = request.session?.get('username') || '';
+  const priest = await priestService.deletePriest(request.params.id, deletedBy);
 
   if (!priest) {
     return reply.code(404).send({ message: 'Priest not found' });
@@ -74,10 +80,33 @@ async function deletePriestHandler(request, reply) {
   return reply.code(204).send();
 }
 
+async function restorePriestHandler(request, reply) {
+  const priest = await priestService.restorePriest(request.params.id);
+
+  if (!priest) {
+    return reply.code(404).send({ message: 'Deleted priest not found' });
+  }
+
+  return reply.send(priest);
+}
+
+async function permanentlyDeletePriestHandler(request, reply) {
+  const priest = await priestService.permanentlyDeletePriest(request.params.id);
+
+  if (!priest) {
+    return reply.code(404).send({ message: 'Deleted priest not found' });
+  }
+
+  return reply.code(204).send();
+}
+
 module.exports = {
   createPriestHandler,
   listPriestsHandler,
+  listDeletedPriestsHandler,
   getPriestByIdHandler,
   updatePriestProfileHandler,
   deletePriestHandler,
+  restorePriestHandler,
+  permanentlyDeletePriestHandler,
 };
