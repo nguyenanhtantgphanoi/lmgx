@@ -1,4 +1,5 @@
 const createPriestForm = document.getElementById('createPriestForm');
+const importPriestDocxForm = document.getElementById('importPriestDocxForm');
 const priestsBody = document.getElementById('priestsBody');
 const priestMessage = document.getElementById('priestMessage');
 const refreshPriestsBtn = document.getElementById('refreshPriestsBtn');
@@ -35,6 +36,22 @@ async function createPriest(payload) {
 
   if (!response.ok) {
     throw new Error(await readErrorMessage(response, 'Failed to create priest'));
+  }
+
+  return response.json();
+}
+
+async function importPriestFromDocx(file) {
+  const formData = new FormData();
+  formData.append('profileDocx', file);
+
+  const response = await fetch('/api/priests/import-docx', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Failed to import priest profile from DOCX'));
   }
 
   return response.json();
@@ -116,6 +133,27 @@ createPriestForm.addEventListener('submit', async (event) => {
     await loadPriests();
   } catch (error) {
     setMessage(error.message || 'Unexpected error while creating priest.', 'error');
+  }
+});
+
+importPriestDocxForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const input = importPriestDocxForm.elements.namedItem('profileDocx');
+  const file = input?.files?.[0];
+
+  if (!file) {
+    setMessage('Please choose a .docx file to import.', 'error');
+    return;
+  }
+
+  try {
+    const result = await importPriestFromDocx(file);
+    importPriestDocxForm.reset();
+    setMessage(result.message || 'Imported priest profile from DOCX.', 'ok');
+    await loadPriests();
+  } catch (error) {
+    setMessage(error.message || 'Unexpected error while importing priest profile.', 'error');
   }
 });
 

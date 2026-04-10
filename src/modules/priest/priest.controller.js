@@ -1,4 +1,57 @@
 const priestService = require('./priest.service');
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const bcrypt = require('bcryptjs');
+const mammoth = require('mammoth');
+const { parsePriestProfileFromDocxText } = require('./priest-docx-import');
+
+function inferStorageFolder(priest) {
+  if (priest?.storageFolder) {
+    return priest.storageFolder;
+  }
+
+  const avatarMatch = /^\/uploads\/([^/]+)\//.exec(String(priest?.avatarUrl || ''));
+  if (avatarMatch && avatarMatch[1]) {
+    return avatarMatch[1];
+  }
+
+  const missions = Array.isArray(priest?.missions) ? priest.missions : [];
+  for (const mission of missions) {
+    const docs = [];
+
+    if (Array.isArray(mission.appointmentLetters)) {
+      docs.push(...mission.appointmentLetters);
+    }
+
+    if (mission.appointmentLetter) {
+      docs.push(mission.appointmentLetter);
+    }
+
+    for (const docUrl of docs) {
+      const match = /^\/uploads\/([^/]+)\//.exec(String(docUrl || ''));
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+  }
+
+  return '';
+}
+
+async function deletePriestStorageFolder(folderName) {
+  if (!folderName) {
+    return;
+  }
+
+  const uploadsRoot = path.resolve(path.join(__dirname, '../../../public/uploads'));
+  const targetPath = path.resolve(path.join(uploadsRoot, folderName));
+
+  if (!targetPath.startsWith(uploadsRoot + path.sep)) {
+    throw new Error('Invalid priest storage folder path.');
+  }
+
+  await fs.rm(targetPath, { recursive: true, force: true });
+}
 
 function sendPriestError(reply, error, duplicateMessage) {
   if (error && error.code === 11000) {
@@ -29,6 +82,43 @@ async function createPriestHandler(request, reply) {
       error,
       'Priest email must be unique. Remove the old email index if email is now optional.'
     );
+  }
+}
+
+async function importPriestFromDocxHandler(request, reply) {
+  if (!request.isMultipart()) {
+    return reply.code(415).send({ message: 'Expected multipart/form-data request.' });
+  }
+
+  const part = await request.file();
+  if (!part || !part.filename) {
+    return reply.code(400).send({ message: 'No DOCX file uploaded.' });
+  }
+
+  const extension = path.extname(part.filename).toLowerCase();
+  if (extension !== '.docx') {
+    return reply.code(400).send({ message: 'Only .docx files are supported for import.' });
+  }
+
+  try {
+    const buffer = await part.toBuffer();
+    const extraction = await mammoth.extractRawText({ buffer });
+    const payload = parsePriestProfileFromDocxText(extraction.value);
+
+    if (!payload.fullName) {
+      return reply.code(400).send({
+        message: 'Cannot detect full name from DOCX. Add a line like "Họ và tên: ..."',
+      });
+    }
+
+    const priest = await priestService.createPriest(payload);
+    return reply.code(201).send({
+      message: `Imported profile for ${priest.fullName}.`,
+      priest,
+    });
+  } catch (error) {
+    request.log.error(error);
+    return sendPriestError(reply, error, 'Priest email must be unique.');
   }
 }
 
@@ -91,17 +181,38 @@ async function restorePriestHandler(request, reply) {
 }
 
 async function permanentlyDeletePriestHandler(request, reply) {
-  const priest = await priestService.permanentlyDeletePriest(request.params.id);
+  const { username, password } = request.body || {};
+  const validUsername = username === request.server.config.ADMIN_USERNAME;
+  const validPassword =
+    validUsername &&
+    bcrypt.compareSync(password || '', request.server.config.ADMIN_PASSWORD_HASH);
+
+  if (!validUsername || !validPassword) {
+    return reply.code(401).send({ message: 'Re-authentication failed.' });
+  }
+
+  const priest = await priestService.getDeletedPriestById(request.params.id);
 
   if (!priest) {
     return reply.code(404).send({ message: 'Deleted priest not found' });
   }
+
+  try {
+    const folderName = inferStorageFolder(priest);
+    await deletePriestStorageFolder(folderName);
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ message: 'Failed to delete priest storage folder.' });
+  }
+
+  await priestService.permanentlyDeletePriest(request.params.id);
 
   return reply.code(204).send();
 }
 
 module.exports = {
   createPriestHandler,
+  importPriestFromDocxHandler,
   listPriestsHandler,
   listDeletedPriestsHandler,
   getPriestByIdHandler,

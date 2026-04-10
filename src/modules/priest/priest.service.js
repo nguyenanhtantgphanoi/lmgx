@@ -12,6 +12,10 @@ async function listDeletedPriests() {
   return Priest.find({ deletedAt: { $ne: null } }).sort({ deletedAt: -1 }).lean();
 }
 
+async function getDeletedPriestById(priestId) {
+  return Priest.findOne({ _id: priestId, deletedAt: { $ne: null } }).lean();
+}
+
 async function getPriestById(priestId) {
   return Priest.findOne({ _id: priestId, deletedAt: null }).lean();
 }
@@ -60,6 +64,7 @@ module.exports = {
   createPriest,
   listPriests,
   listDeletedPriests,
+  getDeletedPriestById,
   getPriestById,
   updatePriestProfile,
   deletePriest,

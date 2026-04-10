@@ -1,5 +1,6 @@
 const {
   createPriestHandler,
+  importPriestFromDocxHandler,
   listPriestsHandler,
   listDeletedPriestsHandler,
   getPriestByIdHandler,
@@ -67,6 +68,8 @@ const priestBodySchema = {
 async function priestRoutes(app) {
   app.get('/priests', listPriestsHandler);
   app.get('/priests/deleted', listDeletedPriestsHandler);
+
+  app.post('/priests/import-docx', importPriestFromDocxHandler);
 
   app.post('/priests', {
     schema: {
@@ -136,6 +139,15 @@ async function priestRoutes(app) {
         required: ['id'],
         properties: {
           id: { type: 'string', minLength: 1 },
+        },
+      },
+      body: {
+        type: 'object',
+        required: ['username', 'password'],
+        additionalProperties: false,
+        properties: {
+          username: { type: 'string', minLength: 1 },
+          password: { type: 'string', minLength: 1 },
         },
       },
     },

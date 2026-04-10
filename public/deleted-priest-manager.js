@@ -40,8 +40,31 @@ async function restorePriest(priestId) {
   return response.json();
 }
 
-async function permanentlyDeletePriest(priestId) {
-  const response = await fetch(`/api/priests/${priestId}/permanent`, { method: 'DELETE' });
+function askReauthCredentials(fullName) {
+  const username = window.prompt(
+    `Re-authentication required to permanently delete ${fullName}.\nEnter admin username:`
+  );
+  if (!username || !username.trim()) {
+    return null;
+  }
+
+  const password = window.prompt('Enter admin password:');
+  if (!password) {
+    return null;
+  }
+
+  return {
+    username: username.trim(),
+    password,
+  };
+}
+
+async function permanentlyDeletePriest(priestId, credentials) {
+  const response = await fetch(`/api/priests/${priestId}/permanent`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
   if (!response.ok) {
     throw new Error(await readErrorMessage(response, 'Failed to delete priest permanently'));
   }
@@ -84,8 +107,14 @@ function renderDeletedPriests(priests) {
       );
       if (!confirmed) return;
 
+      const credentials = askReauthCredentials(priest.fullName || 'this profile');
+      if (!credentials) {
+        setMessage('Re-authentication canceled.', 'error');
+        return;
+      }
+
       try {
-        await permanentlyDeletePriest(priest._id);
+        await permanentlyDeletePriest(priest._id, credentials);
         row.remove();
         setMessage(`Permanently deleted ${priest.fullName}.`, 'ok');
       } catch (error) {
