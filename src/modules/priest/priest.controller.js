@@ -1,9 +1,103 @@
 const priestService = require('./priest.service');
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const bcrypt = require('bcryptjs');
 const mammoth = require('mammoth');
 const { parsePriestProfileFromDocxText } = require('./priest-docx-import');
+
+function toSafeFolderName(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9\s-_]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+function buildPriestFolderCandidates(priest, priestId) {
+  const baseName = toSafeFolderName(priest?.fullName) || `priest-${priestId}`;
+  const saintName = toSafeFolderName(priest?.saintName);
+  const birthYear = priest?.dateOfBirth ? new Date(priest.dateOfBirth).getUTCFullYear() : null;
+  const hasValidYear = Number.isInteger(birthYear) && birthYear > 0;
+
+  const candidates = [baseName];
+
+  if (saintName) {
+    candidates.push(`${baseName}-${saintName}`);
+  }
+
+  if (saintName && hasValidYear) {
+    candidates.push(`${baseName}-${saintName}-${birthYear}`);
+  }
+
+  if (!saintName && hasValidYear) {
+    candidates.push(`${baseName}-${birthYear}`);
+  }
+
+  candidates.push(`priest-${priestId}`);
+  return [...new Set(candidates)];
+}
+
+async function folderExists(folderPath) {
+  try {
+    const stat = await fs.stat(folderPath);
+    return stat.isDirectory();
+  } catch (_error) {
+    return false;
+  }
+}
+
+async function fileExists(filePath) {
+  try {
+    const stat = await fs.stat(filePath);
+    return stat.isFile();
+  } catch (_error) {
+    return false;
+  }
+}
+
+function toSafeFileName(fileName, fallbackName = 'imported-profile.docx') {
+  const baseName = path.basename(String(fileName || '').trim());
+  if (!baseName) return fallbackName;
+
+  const sanitized = baseName
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '-')
+    .replace(/[.\s]+$/g, '');
+
+  return sanitized || fallbackName;
+}
+
+async function resolveImportFileName(uploadDir, originalName) {
+  const preferredName = toSafeFileName(originalName, 'imported-profile.docx');
+  const preferredPath = path.join(uploadDir, preferredName);
+
+  if (!(await fileExists(preferredPath))) {
+    return preferredName;
+  }
+
+  const extension = path.extname(preferredName) || '.docx';
+  const stem = path.basename(preferredName, extension) || 'imported-profile';
+  const fallbackName = `${stem}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}${extension}`;
+  return fallbackName;
+}
+
+async function resolveImportFolderName(uploadsRoot, priest) {
+  if (priest?.storageFolder) {
+    return priest.storageFolder;
+  }
+
+  const candidates = buildPriestFolderCandidates(priest, priest?._id);
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const candidatePath = path.join(uploadsRoot, candidate);
+    if (!(await folderExists(candidatePath))) {
+      return candidate;
+    }
+  }
+
+  return `priest-${priest?._id}`;
+}
 
 function inferStorageFolder(priest) {
   if (priest?.storageFolder) {
@@ -112,6 +206,23 @@ async function importPriestFromDocxHandler(request, reply) {
     }
 
     const priest = await priestService.createPriest(payload);
+
+    const uploadsRoot = path.resolve(path.join(__dirname, '../../../public/uploads'));
+    await fs.mkdir(uploadsRoot, { recursive: true });
+
+    const folderName = await resolveImportFolderName(uploadsRoot, priest);
+    const uploadDir = path.join(uploadsRoot, folderName);
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const importedFileName = await resolveImportFileName(uploadDir, part.filename);
+    const importedFilePath = path.join(uploadDir, importedFileName);
+    await fs.writeFile(importedFilePath, buffer);
+
+    if (priest.storageFolder !== folderName) {
+      priest.storageFolder = folderName;
+      await priest.save();
+    }
+
     return reply.code(201).send({
       message: `Imported profile for ${priest.fullName}.`,
       priest,

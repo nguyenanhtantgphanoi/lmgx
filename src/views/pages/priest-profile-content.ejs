@@ -12,6 +12,7 @@
     <button type="button" class="tab-btn" data-tab="ordination">Truyền chức</button>
     <button type="button" class="tab-btn" data-tab="transfer">Chuyển giáo phận</button>
     <button type="button" class="tab-btn" data-tab="ministry">Sứ vụ</button>
+    <button type="button" class="tab-btn" data-tab="files">Tệp hồ sơ</button>
   </nav>
 
   <form id="priestProfileForm">
@@ -320,6 +321,18 @@
           <button type="button" id="addMissionBtn" class="btn-add">+ Thêm sứ vụ</button>
         </div>
         <div id="missionsList"></div>
+      </div>
+    </fieldset>
+
+    <!-- TAB: Tệp hồ sơ -->
+    <fieldset class="tab-panel" id="tab-files">
+      <legend>Tệp thuộc hồ sơ linh mục</legend>
+      <div class="array-section">
+        <div class="array-section-head">
+          <h3>Danh sách tệp trong thư mục hồ sơ</h3>
+          <button type="button" id="refreshProfileFilesBtn" class="btn-add">Làm mới</button>
+        </div>
+        <div id="profileFilesList" class="profile-files-list"></div>
       </div>
     </fieldset>
 

@@ -30,3 +30,27 @@
     </td>
   </tr>
 </template>
+
+<div id="deletedIdentityVerifyModal" class="reauth-modal" aria-hidden="true">
+  <div class="reauth-modal-card" role="dialog" aria-modal="true" aria-labelledby="deletedIdentityModalTitle">
+    <h3 id="deletedIdentityModalTitle">Xác thực để xóa vĩnh viễn</h3>
+    <p id="deletedIdentityModalHint">Vui lòng nhập tài khoản quản trị để xác nhận.</p>
+
+    <form id="deletedIdentityVerifyForm" class="reauth-form">
+      <label>
+        Username
+        <input id="deletedIdentityVerifyUsername" name="username" type="text" autocomplete="username" required />
+      </label>
+      <label>
+        Password
+        <input id="deletedIdentityVerifyPassword" name="password" type="password" autocomplete="current-password" required />
+      </label>
+      <p id="deletedIdentityVerifyError" class="reauth-error" aria-live="polite"></p>
+
+      <div class="reauth-actions">
+        <button type="button" id="deletedIdentityVerifyCancel" class="btn-reauth-cancel">Hủy</button>
+        <button type="submit" class="btn-reauth-confirm">Xác nhận xóa vĩnh viễn</button>
+      </div>
+    </form>
+  </div>
+</div>

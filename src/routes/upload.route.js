@@ -178,6 +178,51 @@ async function findPriestFolderForListing(uploadsRoot, priest, priestId) {
 }
 
 async function uploadRoutes(app) {
+  app.get('/uploads/profile-files', async function listProfileFiles(request, reply) {
+    const priestId = request.query?.priestId;
+    if (!priestId) {
+      return reply.code(400).send({ message: 'priestId is required.' });
+    }
+
+    const uploadsRoot = path.join(__dirname, '../../public/uploads');
+    const priestWithDetails = await Priest.findById(priestId)
+      .select('fullName saintName dateOfBirth missions avatarUrl storageFolder')
+      .lean();
+
+    if (!priestWithDetails) {
+      return reply.code(404).send({ message: 'Priest not found.' });
+    }
+
+    const priestFolderName = await findPriestFolderForListing(uploadsRoot, priestWithDetails, priestId);
+    if (!priestFolderName) {
+      return reply.send({ files: [] });
+    }
+
+    const folderPath = path.join(uploadsRoot, priestFolderName);
+    if (!(await folderExists(folderPath))) {
+      return reply.send({ files: [] });
+    }
+
+    const entries = await fs.readdir(folderPath, { withFileTypes: true });
+    const files = [];
+
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+
+      const absolutePath = path.join(folderPath, entry.name);
+      const stat = await fs.stat(absolutePath);
+      files.push({
+        fileName: entry.name,
+        url: `/uploads/${priestFolderName}/${entry.name}`,
+        size: stat.size,
+        updatedAt: stat.mtime,
+      });
+    }
+
+    files.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    return reply.send({ files });
+  });
+
   app.get('/uploads/avatar', async function listAvatarFiles(request, reply) {
     const priestId = request.query?.priestId;
     if (!priestId) {

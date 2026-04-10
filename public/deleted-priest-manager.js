@@ -2,6 +2,13 @@ const deletedPriestsBody = document.getElementById('deletedPriestsBody');
 const deletedPriestMessage = document.getElementById('deletedPriestMessage');
 const refreshDeletedPriestsBtn = document.getElementById('refreshDeletedPriestsBtn');
 const deletedPriestRowTemplate = document.getElementById('deletedPriestRowTemplate');
+const deletedIdentityVerifyModal = document.getElementById('deletedIdentityVerifyModal');
+const deletedIdentityVerifyForm = document.getElementById('deletedIdentityVerifyForm');
+const deletedIdentityVerifyUsername = document.getElementById('deletedIdentityVerifyUsername');
+const deletedIdentityVerifyPassword = document.getElementById('deletedIdentityVerifyPassword');
+const deletedIdentityVerifyError = document.getElementById('deletedIdentityVerifyError');
+const deletedIdentityVerifyCancel = document.getElementById('deletedIdentityVerifyCancel');
+const deletedIdentityModalHint = document.getElementById('deletedIdentityModalHint');
 
 async function readErrorMessage(response, fallbackMessage) {
   try {
@@ -40,23 +47,59 @@ async function restorePriest(priestId) {
   return response.json();
 }
 
-function askReauthCredentials(fullName) {
-  const username = window.prompt(
-    `Re-authentication required to permanently delete ${fullName}.\nEnter admin username:`
-  );
-  if (!username || !username.trim()) {
-    return null;
-  }
+function requestReauthCredentials(fullName) {
+  return new Promise((resolve) => {
+    deletedIdentityVerifyError.textContent = '';
+    deletedIdentityVerifyForm.reset();
+    deletedIdentityModalHint.textContent = `Vui lòng nhập tài khoản quản trị để xóa vĩnh viễn ${fullName}.`;
+    deletedIdentityVerifyModal.setAttribute('aria-hidden', 'false');
+    deletedIdentityVerifyUsername.focus();
 
-  const password = window.prompt('Enter admin password:');
-  if (!password) {
-    return null;
-  }
+    const cleanup = () => {
+      deletedIdentityVerifyModal.setAttribute('aria-hidden', 'true');
+      deletedIdentityVerifyForm.removeEventListener('submit', onSubmit);
+      deletedIdentityVerifyCancel.removeEventListener('click', onCancel);
+      deletedIdentityVerifyModal.removeEventListener('click', onBackdropClick);
+      deletedIdentityVerifyModal.removeEventListener('keydown', onKeydown);
+    };
 
-  return {
-    username: username.trim(),
-    password,
-  };
+    const onCancel = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    const onSubmit = (event) => {
+      event.preventDefault();
+
+      const username = (deletedIdentityVerifyUsername.value || '').trim();
+      const password = deletedIdentityVerifyPassword.value || '';
+      if (!username || !password) {
+        deletedIdentityVerifyError.textContent = 'Vui lòng nhập đủ username và password.';
+        return;
+      }
+
+      cleanup();
+      resolve({ username, password });
+    };
+
+    const onBackdropClick = (event) => {
+      if (event.target === deletedIdentityVerifyModal) {
+        onCancel();
+      }
+    };
+
+    const onKeydown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCancel();
+      }
+    };
+
+    deletedIdentityVerifyForm.addEventListener('submit', onSubmit);
+    deletedIdentityVerifyCancel.addEventListener('click', onCancel);
+    deletedIdentityVerifyModal.addEventListener('click', onBackdropClick);
+    deletedIdentityVerifyModal.addEventListener('keydown', onKeydown);
+  });
 }
 
 async function permanentlyDeletePriest(priestId, credentials) {
@@ -107,9 +150,9 @@ function renderDeletedPriests(priests) {
       );
       if (!confirmed) return;
 
-      const credentials = askReauthCredentials(priest.fullName || 'this profile');
+      const credentials = await requestReauthCredentials(priest.fullName || 'hồ sơ này');
       if (!credentials) {
-        setMessage('Re-authentication canceled.', 'error');
+        setMessage('Đã hủy xác thực xóa vĩnh viễn.', 'error');
         return;
       }
 

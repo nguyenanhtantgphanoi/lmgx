@@ -11,6 +11,8 @@ const identityVerifyError = document.getElementById('identityVerifyError');
 const avatarFileInput = document.getElementById('avatarFileInput');
 const avatarPreview = document.getElementById('avatarPreview');
 const avatarLibrary = document.getElementById('avatarLibrary');
+const profileFilesList = document.getElementById('profileFilesList');
+const refreshProfileFilesBtn = document.getElementById('refreshProfileFilesBtn');
 const saveProfileBtn = profileForm?.querySelector('button[type="submit"]');
 
 const priestId = profileRoot?.dataset?.priestId;
@@ -25,6 +27,12 @@ document.getElementById('profileTabs').addEventListener('click', (e) => {
   document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+
+  if (btn.dataset.tab === 'files') {
+    loadProfileFiles().catch((error) => {
+      setProfileMessage(error.message || 'Không thể tải danh sách tệp hồ sơ.', 'error');
+    });
+  }
 });
 
 // --- Utilities ---
@@ -57,6 +65,29 @@ function escHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function formatFileSize(bytes) {
+  const size = Number(bytes || 0);
+  if (!Number.isFinite(size) || size <= 0) return '-';
+
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = size;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  const fixed = unitIndex === 0 ? 0 : 1;
+  return `${value.toFixed(fixed)} ${units[unitIndex]}`;
+}
+
+function formatFileDate(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleString();
 }
 
 function confirmDeleteAction(message) {
@@ -175,6 +206,55 @@ async function loadAvatarLibrary() {
 
   renderAvatarLibrary(result.files || []);
         updateSaveButtonState();
+}
+
+function renderProfileFiles(files = []) {
+  if (!profileFilesList) return;
+
+  if (!Array.isArray(files) || files.length === 0) {
+    profileFilesList.innerHTML = '<p>Chưa có tệp nào trong thư mục hồ sơ.</p>';
+    return;
+  }
+
+  profileFilesList.innerHTML = `
+    <table class="array-table profile-files-table">
+      <thead>
+        <tr>
+          <th>Tên tệp</th>
+          <th>Dung lượng</th>
+          <th>Cập nhật</th>
+          <th>Xem</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${files.map((file) => `
+          <tr>
+            <td>${escHtml(file.fileName || '-')}</td>
+            <td>${formatFileSize(file.size)}</td>
+            <td>${escHtml(formatFileDate(file.updatedAt))}</td>
+            <td>
+              <a class="btn-link" href="${file.url}" target="_blank" rel="noopener noreferrer">Mở</a>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function loadProfileFiles() {
+  if (!priestId || !profileFilesList) return;
+
+  profileFilesList.innerHTML = '<p>Đang tải danh sách tệp...</p>';
+
+  const response = await fetch(`/api/uploads/profile-files?priestId=${encodeURIComponent(priestId)}`);
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || 'Không thể tải danh sách tệp hồ sơ.');
+  }
+
+  renderProfileFiles(result.files || []);
 }
 
 // --- Siblings ---
@@ -555,6 +635,16 @@ async function uploadAvatarImage() {
 }
 
 document.getElementById('addMissionBtn').addEventListener('click', () => addMissionCard());
+if (refreshProfileFilesBtn) {
+  refreshProfileFilesBtn.addEventListener('click', async () => {
+    try {
+      await loadProfileFiles();
+      setProfileMessage('Đã làm mới danh sách tệp hồ sơ.', 'ok');
+    } catch (error) {
+      setProfileMessage(error.message || 'Không thể làm mới danh sách tệp hồ sơ.', 'error');
+    }
+  });
+}
 profileForm.addEventListener('input', updateSaveButtonState);
 profileForm.addEventListener('change', updateSaveButtonState);
 
@@ -800,6 +890,7 @@ async function loadPriestProfile() {
     const priest = await fetchPriest();
     fillForm(priest);
     await loadAvatarLibrary();
+    await loadProfileFiles();
     markSnapshotAsSaved();
     setProfileMessage(`Đã tải hồ sơ ${priest.fullName}.`, 'ok');
   } catch (error) {
@@ -815,6 +906,7 @@ profileForm.addEventListener('submit', async (event) => {
     const updated = await updatePriest(getPayloadFromForm());
     fillForm(updated);
     await loadAvatarLibrary();
+    await loadProfileFiles();
     markSnapshotAsSaved();
     setProfileMessage(`Đã lưu hồ sơ ${updated.fullName}.`, 'ok');
   } catch (error) {
