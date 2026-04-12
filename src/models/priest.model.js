@@ -64,6 +64,14 @@ const missionSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const noteEntrySchema = new mongoose.Schema(
+  {
+    content: { type: String, trim: true, default: '' },
+    date: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
 const priestSchema = new mongoose.Schema(
   {
     // Personal information
@@ -127,6 +135,7 @@ const priestSchema = new mongoose.Schema(
       enum: ['active', 'inactive', 'retired'],
       default: 'active',
     },
+    notes1: { type: [noteEntrySchema], default: [] },
     notes: { type: String, trim: true, default: '' },
   },
   { timestamps: true }

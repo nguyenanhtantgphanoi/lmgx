@@ -37,6 +37,44 @@ function parseDate(value) {
   return null;
 }
 
+function parseDateOrYear(value, isEndDate = false) {
+  const raw = normalizeText(value);
+  if (!raw) return null;
+
+  const yearMatch = raw.match(/^\d{4}$/);
+  if (yearMatch) {
+    return raw;
+  }
+
+  return parseDate(raw);
+}
+
+function parseMissionsFromNumberedLines(lines) {
+  const missions = [];
+
+  const missionPattern =
+    /^\s*\d+[.)\-:]?\s*(.+?)\s+t(?:u|ừ)(?:\s+n(?:a|ă)m)?\s+(\d{1,2}[/-]\d{1,2}[/-]\d{4}|\d{4})(?:\s*-\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4}|\d{4}))?\s*-?\s*$/i;
+
+  for (const rawLine of lines) {
+    const line = normalizeText(rawLine);
+    if (!line) continue;
+
+    const match = line.match(missionPattern);
+    if (!match) continue;
+
+    const [, missionName, fromRaw, toRaw] = match;
+    missions.push({
+      name: normalizeText(missionName),
+      places: '',
+      from: parseDateOrYear(fromRaw, false),
+      to: toRaw ? parseDateOrYear(toRaw, true) : null,
+      appointmentLetters: [],
+    });
+  }
+
+  return missions;
+}
+
 function readValueByLabels(lines, labels) {
   for (let i = 0; i < lines.length; i += 1) {
     const line = normalizeText(lines[i]);
@@ -291,6 +329,8 @@ function parsePriestProfileFromDocxText(rawText) {
     .map((line) => normalizeText(line))
     .filter(Boolean);
 
+  const parsedMissions = parseMissionsFromNumberedLines(lines);
+
   const orderedSpecs = [
     { key: 'nationalId', labels: ['Số CMND (hoặc CCCD)', 'So CMND (hoac CCCD)', 'Số CCCD', 'So CCCD'] },
     { key: 'nationalIdIssuedDate', labels: ['Ngày cấp', 'Ngay cap'] },
@@ -406,6 +446,7 @@ function parsePriestProfileFromDocxText(rawText) {
       'Linh muc goc Giao phan / Dong tu',
     ]),
     joinedDioceseDate: parseDate(orderedValues.joinedDioceseDate),
+    missions: parsedMissions,
     notes: readValueByLabels(lines, ['Ghi chu', 'Ghi chú']),
     status: mapStatus(readValueByLabels(lines, ['Tinh trang', 'Tình trạng'])),
   };

@@ -13,11 +13,16 @@ const avatarPreview = document.getElementById('avatarPreview');
 const avatarLibrary = document.getElementById('avatarLibrary');
 const profileFilesList = document.getElementById('profileFilesList');
 const refreshProfileFilesBtn = document.getElementById('refreshProfileFilesBtn');
+const profileNotesList = document.getElementById('profileNotesList');
+const profileNotesEmpty = document.getElementById('profileNotesEmpty');
+const newProfileNoteInput = document.getElementById('newProfileNoteInput');
+const addProfileNoteBtn = document.getElementById('addProfileNoteBtn');
 const saveProfileBtn = profileForm?.querySelector('button[type="submit"]');
 
 const priestId = profileRoot?.dataset?.priestId;
 let currentAvatarUrl = '';
 let baselineSnapshot = '';
+let noteItems = [];
 
 // --- Tab switching ---
 document.getElementById('profileTabs').addEventListener('click', (e) => {
@@ -49,6 +54,12 @@ function toDateInputValue(value) {
 
 function trimVal(el) {
   return (el?.value || '').trim();
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\s+/g, ' ');
 }
 
 function getField(name) {
@@ -92,6 +103,183 @@ function formatFileDate(value) {
 
 function confirmDeleteAction(message) {
   return window.confirm(message || 'Bạn có chắc muốn xóa mục này?');
+}
+
+function parseNotesText(value) {
+  return String(value || '')
+    .split(/\r?\n/)
+    .map((line) => ({
+      content: normalizeText(line),
+      date: null,
+    }))
+    .filter((item) => item.content)
+}
+
+function normalizeNoteEntries(value) {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      const content = normalizeText(item?.content);
+      if (!content) return null;
+
+      const rawDate = item?.date ? new Date(item.date) : null;
+      const date = rawDate && !Number.isNaN(rawDate.getTime())
+        ? rawDate.toISOString()
+        : null;
+
+      return { content, date };
+    })
+    .filter(Boolean);
+}
+
+function formatNoteDate(value) {
+  if (!value) return 'Không có ngày';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Không có ngày';
+  return date.toLocaleString();
+}
+
+function readNotesPayload() {
+  return noteItems.map((item) => ({
+    content: normalizeText(item?.content),
+    date: item?.date || null,
+  }))
+  .filter((item) => item.content);
+}
+
+function parseNotesFromPriest(priest) {
+  const structured = normalizeNoteEntries(priest?.notes1);
+  if (structured.length > 0) {
+    return structured;
+  }
+
+  return parseNotesText(priest?.notes || '');
+}
+
+function syncNotesFieldsValue() {
+  const notesField = profileForm?.elements?.namedItem('notes');
+  if (!notesField) return;
+  notesField.value = readNotesPayload().map((item) => item.content).join('\n');
+}
+
+function escAttr(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderNotesList() {
+  if (!profileNotesList) return;
+
+  const items = readNotesPayload();
+  if (items.length === 0) {
+    profileNotesList.innerHTML = '';
+    if (profileNotesEmpty) profileNotesEmpty.hidden = false;
+    syncNotesFieldsValue();
+    return;
+  }
+
+  profileNotesList.innerHTML = items
+    .map((item, index) => `
+      <li>
+        <div class="note-item-content">
+          ${item.date ? `<strong>${escHtml(formatNoteDate(item.date))}</strong>` : ''}
+          <span>${escHtml(item.content)}</span>
+        </div>
+        <div class="note-item-actions">
+          <button type="button" class="btn-note-edit" data-note-index="${index}">Sửa</button>
+          <button type="button" class="btn-remove-row" data-note-delete-index="${index}">Xóa</button>
+        </div>
+      </li>
+    `)
+    .join('');
+
+  if (profileNotesEmpty) profileNotesEmpty.hidden = true;
+  syncNotesFieldsValue();
+
+  profileNotesList.querySelectorAll('[data-note-delete-index]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const index = Number(btn.dataset.noteDeleteIndex);
+      if (!Number.isInteger(index) || index < 0 || index >= noteItems.length) return;
+      if (!confirmDeleteAction('Xóa ghi chú này?')) return;
+      noteItems.splice(index, 1);
+      renderNotesList();
+      updateSaveButtonState();
+    });
+  });
+
+  profileNotesList.querySelectorAll('[data-note-index]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const index = Number(btn.dataset.noteIndex);
+      if (!Number.isInteger(index) || index < 0 || index >= noteItems.length) return;
+      openEditNoteModal(index);
+    });
+  });
+}
+
+function openEditNoteModal(index) {
+  const editNoteModal = document.getElementById('editNoteModal');
+  const editNoteTextarea = document.getElementById('editNoteTextarea');
+  if (!editNoteModal || !editNoteTextarea) return;
+
+  editNoteTextarea.value = noteItems[index]?.content || '';
+  editNoteModal.setAttribute('aria-hidden', 'false');
+  editNoteTextarea.focus();
+
+  const onSubmit = (event) => {
+    event.preventDefault();
+    const updated = normalizeText(editNoteTextarea.value || '');
+    if (!updated) return;
+    noteItems[index] = {
+      ...noteItems[index],
+      content: updated,
+    };
+    cleanup();
+    renderNotesList();
+    updateSaveButtonState();
+  };
+
+  const onCancel = () => { cleanup(); };
+
+  const onKeydown = (event) => {
+    if (event.key === 'Escape') { event.preventDefault(); onCancel(); }
+  };
+
+  const form = document.getElementById('editNoteForm');
+  const cancelBtn = document.getElementById('editNoteCancel');
+
+  const cleanup = () => {
+    editNoteModal.setAttribute('aria-hidden', 'true');
+    form.removeEventListener('submit', onSubmit);
+    cancelBtn.removeEventListener('click', onCancel);
+    editNoteModal.removeEventListener('keydown', onKeydown);
+    editNoteModal.removeEventListener('click', onBackdropClick);
+  };
+
+  const onBackdropClick = (event) => {
+    if (event.target === editNoteModal) onCancel();
+  };
+
+  form.addEventListener('submit', onSubmit);
+  cancelBtn.addEventListener('click', onCancel);
+  editNoteModal.addEventListener('keydown', onKeydown);
+  editNoteModal.addEventListener('click', onBackdropClick);
+}
+
+function addProfileNote() {
+  const note = normalizeText(newProfileNoteInput?.value || '');
+  if (!note) return;
+
+  noteItems.push({
+    content: note,
+    date: new Date().toISOString(),
+  });
+  if (newProfileNoteInput) newProfileNoteInput.value = '';
+  renderNotesList();
+  updateSaveButtonState();
 }
 
 function buildCurrentSnapshot() {
@@ -645,6 +833,17 @@ if (refreshProfileFilesBtn) {
     }
   });
 }
+if (addProfileNoteBtn) {
+  addProfileNoteBtn.addEventListener('click', addProfileNote);
+}
+if (newProfileNoteInput) {
+  newProfileNoteInput.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      event.preventDefault();
+      addProfileNote();
+    }
+  });
+}
 profileForm.addEventListener('input', updateSaveButtonState);
 profileForm.addEventListener('change', updateSaveButtonState);
 
@@ -678,6 +877,8 @@ function fillForm(p) {
   profileForm.elements.namedItem('placeOfBurial').value = p.placeOfBurial || '';
   profileForm.elements.namedItem('status').value = p.status || 'active';
   profileForm.elements.namedItem('notes').value = p.notes || '';
+  noteItems = parseNotesFromPriest(p);
+  renderNotesList();
 
   // Family
   profileForm.elements.namedItem('fatherName').value = p.fatherName || '';
@@ -750,6 +951,7 @@ function getPayloadFromForm() {
     burialDate:        dateField('burialDate'),
     placeOfBurial:     getField('placeOfBurial'),
     status:            getField('status') || 'active',
+    notes1:            readNotesPayload(),
     notes:             getField('notes'),
 
     fatherName:      getField('fatherName'),

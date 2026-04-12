@@ -61,6 +61,18 @@ const priestBodySchema = {
     missions: { type: 'array' },
     // Status / Notes
     status: { type: 'string', enum: ['active', 'inactive', 'retired'] },
+    notes1: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          content: { type: 'string' },
+          date: { type: ['string', 'null'] },
+        },
+        required: ['content'],
+      },
+    },
     notes:  { type: 'string' },
   },
 };

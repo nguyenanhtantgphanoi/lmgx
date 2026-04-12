@@ -12,6 +12,8 @@
     <button type="button" class="tab-btn" data-tab="ordination">Truyền chức</button>
     <button type="button" class="tab-btn" data-tab="transfer">Chuyển giáo phận</button>
     <button type="button" class="tab-btn" data-tab="ministry">Sứ vụ</button>
+    <button type="button" class="tab-btn" data-tab="notes1">Ghi chú 1</button>
+    <button type="button" class="tab-btn" data-tab="notes2">Ghi chú 2</button>
     <button type="button" class="tab-btn" data-tab="files">Tệp hồ sơ</button>
   </nav>
 
@@ -119,32 +121,12 @@
           <input name="healthInsuranceId" type="text" />
         </label>
         <label>
-          Qua đời ngày
-          <input name="dateOfDeath" type="date" />
-        </label>
-        <label>
-          Nơi qua đời
-          <input name="placeOfDeath" type="text" />
-        </label>
-        <label>
-          Ngày an táng
-          <input name="burialDate" type="date" />
-        </label>
-        <label>
-          Nơi an táng
-          <input name="placeOfBurial" type="text" />
-        </label>
-        <label>
           Tình trạng
           <select name="status">
             <option value="active">Đang hoạt động</option>
             <option value="inactive">Không hoạt động</option>
             <option value="retired">Đã nghỉ hưu</option>
           </select>
-        </label>
-        <label class="col-span-2">
-          Ghi chú
-          <textarea name="notes" rows="3"></textarea>
         </label>
       </div>
     </fieldset>
@@ -324,6 +306,49 @@
       </div>
     </fieldset>
 
+    <!-- TAB: Ghi chú 1 -->
+    <fieldset class="tab-panel" id="tab-notes1">
+      <legend>Thông tin Ghi chú 1</legend>
+      <div class="array-section">
+        <div class="array-section-head">
+          <h3>Danh sách ghi chú</h3>
+        </div>
+        <ul id="profileNotesList" class="profile-notes-list"></ul>
+        <p id="profileNotesEmpty" class="profile-notes-empty">Chưa có ghi chú nào.</p>
+      </div>
+      <div class="notes-add-row">
+        <label class="col-span-2">
+          Thêm ghi chú mới
+          <textarea id="newProfileNoteInput" rows="3" placeholder="Nhập nội dung ghi chú..."></textarea>
+        </label>
+        <button type="button" id="addProfileNoteBtn" class="btn-add">+ Thêm ghi chú</button>
+      </div>
+      <textarea name="notes" hidden></textarea>
+    </fieldset>
+
+    <!-- TAB: Ghi chú 2 -->
+    <fieldset class="tab-panel" id="tab-notes2">
+      <legend>Ghi chú 2 (Phần dành riêng cho Tòa Giám mục)</legend>
+      <div class="form-grid">
+        <label>
+          Qua đời ngày
+          <input name="dateOfDeath" type="date" />
+        </label>
+        <label>
+          Nơi qua đời
+          <input name="placeOfDeath" type="text" />
+        </label>
+        <label>
+          Ngày an táng
+          <input name="burialDate" type="date" />
+        </label>
+        <label>
+          Nơi an táng
+          <input name="placeOfBurial" type="text" />
+        </label>
+      </div>
+    </fieldset>
+
     <!-- TAB: Tệp hồ sơ -->
     <fieldset class="tab-panel" id="tab-files">
       <legend>Tệp thuộc hồ sơ linh mục</legend>
@@ -341,6 +366,22 @@
       <button type="button" id="deletePriestBtn" class="btn-delete">Xóa hồ sơ</button>
     </div>
   </form>
+
+  <div id="editNoteModal" class="identity-modal" aria-hidden="true">
+    <div class="identity-modal-card" role="dialog" aria-modal="true" aria-labelledby="editNoteModalTitle">
+      <h3 id="editNoteModalTitle">Sửa ghi chú</h3>
+      <form id="editNoteForm" class="identity-form">
+        <label>
+          Nội dung ghi chú
+          <textarea id="editNoteTextarea" rows="5" required></textarea>
+        </label>
+        <div class="identity-actions">
+          <button type="button" id="editNoteCancel" class="btn-cancel">Hủy</button>
+          <button type="submit" class="btn-verify">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <div id="identityVerifyModal" class="identity-modal" aria-hidden="true">
     <div class="identity-modal-card" role="dialog" aria-modal="true" aria-labelledby="identityModalTitle">

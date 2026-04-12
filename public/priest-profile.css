@@ -323,6 +323,72 @@ button:hover {
   background: #fff;
 }
 
+.profile-notes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.profile-notes-list li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.55rem 0.65rem;
+}
+
+.profile-notes-list li span {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-item-content {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.note-item-content strong {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.note-item-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.btn-note-edit {
+  background: var(--brand);
+  padding: 0.25rem 0.55rem;
+  font-size: 0.78rem;
+  border-radius: 6px;
+}
+
+.profile-notes-empty {
+  color: var(--muted);
+  margin: 0.2rem 0 0;
+}
+
+.notes-add-row {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.notes-add-row textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem;
+  font: inherit;
+}
+
 .mission-doc-list a {
   color: var(--brand);
   text-decoration: none;
