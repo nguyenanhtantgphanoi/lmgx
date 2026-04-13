@@ -177,6 +177,33 @@ async function findPriestFolderForListing(uploadsRoot, priest, priestId) {
   return null;
 }
 
+function toSafeFileName(rawName) {
+  const name = String(rawName || '')
+    .replace(/[\\/]/g, '')
+    .replace(/[<>:"|?*\x00-\x1f]/g, '')
+    .trim();
+  return name || null;
+}
+
+async function resolveUniqueFileName(uploadDir, originalName) {
+  const safeName = toSafeFileName(originalName);
+  if (!safeName) {
+    const fallbackExt = path.extname(originalName || '') || '';
+    return `${Date.now()}-${crypto.randomUUID()}${fallbackExt}`;
+  }
+
+  const targetPath = path.join(uploadDir, safeName);
+  try {
+    await fs.stat(targetPath);
+  } catch (_error) {
+    return safeName;
+  }
+
+  const ext = path.extname(safeName);
+  const base = path.basename(safeName, ext);
+  return `${base}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`;
+}
+
 async function uploadRoutes(app) {
   app.get('/uploads/profile-files', async function listProfileFiles(request, reply) {
     const priestId = request.query?.priestId;
@@ -322,14 +349,14 @@ async function uploadRoutes(app) {
         });
       }
 
-      const uniqueName = `${Date.now()}-${crypto.randomUUID()}${extension}`;
-      const savePath = path.join(uploadDir, uniqueName);
+      const savedName = await resolveUniqueFileName(uploadDir, part.filename);
+      const savePath = path.join(uploadDir, savedName);
 
       await pipeline(part.file, createWriteStream(savePath));
 
       uploadedFiles.push({
         fileName: part.filename,
-        url: `/uploads/${priestFolderName}/${uniqueName}`,
+        url: `/uploads/${priestFolderName}/${savedName}`,
       });
     }
 
@@ -399,15 +426,15 @@ async function uploadRoutes(app) {
       });
     }
 
-    const uniqueName = `${Date.now()}-${crypto.randomUUID()}${extension}`;
-    const savePath = path.join(uploadDir, uniqueName);
+    const savedName = await resolveUniqueFileName(uploadDir, part.filename);
+    const savePath = path.join(uploadDir, savedName);
 
     await pipeline(part.file, createWriteStream(savePath));
 
     return reply.code(201).send({
       file: {
         fileName: part.filename,
-        url: `/uploads/${priestFolderName}/${uniqueName}`,
+        url: `/uploads/${priestFolderName}/${savedName}`,
       },
     });
   });

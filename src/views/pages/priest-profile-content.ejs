@@ -406,4 +406,16 @@
       </form>
     </div>
   </div>
+
+  <div id="unsavedChangesModal" class="identity-modal" aria-hidden="true">
+    <div class="identity-modal-card" role="dialog" aria-modal="true" aria-labelledby="unsavedChangesTitle">
+      <h3 id="unsavedChangesTitle">Thay đổi chưa được lưu</h3>
+      <p>Bạn có thay đổi chưa lưu. Bạn muốn làm gì?</p>
+      <div class="identity-actions unsaved-actions">
+        <button type="button" id="unsavedLeaveBtn" class="btn-cancel">Rời không lưu</button>
+        <button type="button" id="unsavedSaveBtn" class="btn-verify">Lưu và rời</button>
+        <button type="button" id="unsavedCancelBtn" class="btn-add">Hủy</button>
+      </div>
+    </div>
+  </div>
 </section>

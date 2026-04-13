@@ -57,8 +57,8 @@ const missionSchema = new mongoose.Schema(
   {
     name:              { type: String, trim: true, default: '' },
     places:            { type: String, trim: true, default: '' },
-    from:              { type: Date, default: null },
-    to:                { type: Date, default: null },
+    from:              { type: String, trim: true, default: '' },
+    to:                { type: String, trim: true, default: '' },
     appointmentLetters: { type: [String], default: [] },
   },
   { _id: false }

@@ -655,6 +655,77 @@ async function deleteUploadedDocument(fileUrl) {
   return result;
 }
 
+function detectDateMode(value) {
+  if (!value) return 'date';
+  const str = String(value).trim();
+  if (/^\d{4}$/.test(str)) return 'year';
+  // Old data stored as Date may come back as ISO: detect year-boundary dates
+  const isoMatch = str.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
+  if (isoMatch) {
+    const [, , month, day] = isoMatch;
+    if ((month === '01' && day === '01') || (month === '12' && day === '31')) {
+      return 'year';
+    }
+  }
+  return 'date';
+}
+
+function toMissionDateValue(value) {
+  if (!value) return '';
+  const str = String(value).trim();
+  if (/^\d{4}$/.test(str)) return str;
+  return toDateInputValue(str);
+}
+
+function extractYearFromValue(value) {
+  const str = String(value || '').trim();
+  if (/^\d{4}$/.test(str)) return str;
+  const isoMatch = str.match(/^(\d{4})/);
+  return isoMatch ? isoMatch[1] : '';
+}
+
+function setupDateModeToggle(card, selector, initialValue) {
+  const modeSelect = card.querySelector(`${selector}-mode`);
+  const dateInput = card.querySelector(`${selector}-date`);
+  const yearInput = card.querySelector(`${selector}-year`);
+  if (!modeSelect || !dateInput || !yearInput) return;
+
+  const mode = detectDateMode(initialValue);
+  modeSelect.value = mode;
+  if (mode === 'year') {
+    dateInput.hidden = true;
+    yearInput.hidden = false;
+    yearInput.value = extractYearFromValue(initialValue);
+  } else {
+    dateInput.hidden = false;
+    yearInput.hidden = true;
+    dateInput.value = toMissionDateValue(initialValue);
+  }
+
+  modeSelect.addEventListener('change', () => {
+    if (modeSelect.value === 'year') {
+      dateInput.hidden = true;
+      yearInput.hidden = false;
+      yearInput.value = '';
+    } else {
+      dateInput.hidden = false;
+      yearInput.hidden = true;
+      dateInput.value = '';
+    }
+    updateSaveButtonState();
+  });
+}
+
+function readMissionDateValue(card, selector) {
+  const modeSelect = card.querySelector(`${selector}-mode`);
+  if (!modeSelect) return null;
+  if (modeSelect.value === 'year') {
+    const val = card.querySelector(`${selector}-year`)?.value?.trim() || '';
+    return val || null;
+  }
+  return card.querySelector(`${selector}-date`)?.value || null;
+}
+
 function addMissionCard(m = {}) {
   const card = document.createElement('div');
   card.className = 'mission-card';
@@ -674,12 +745,22 @@ function addMissionCard(m = {}) {
         <input type="text" class="mission-places" value="${escHtml(m.places || '')}" />
       </label>
       <label>
-        Từ ngày
-        <input type="date" class="mission-from" value="${toDateInputValue(m.from)}" />
+        Từ
+        <select class="mission-from-mode">
+          <option value="date">Ngày</option>
+          <option value="year">Năm</option>
+        </select>
+        <input type="date" class="mission-from-date" />
+        <input type="number" class="mission-from-year" min="1900" max="2100" placeholder="VD: 2020" hidden />
       </label>
       <label>
-        Đến ngày
-        <input type="date" class="mission-to" value="${toDateInputValue(m.to)}" />
+        Đến
+        <select class="mission-to-mode">
+          <option value="date">Ngày</option>
+          <option value="year">Năm</option>
+        </select>
+        <input type="date" class="mission-to-date" />
+        <input type="number" class="mission-to-year" min="1900" max="2100" placeholder="VD: 2024" hidden />
       </label>
       <label class="col-span-2">
         Văn thư bổ nhiệm / bài sai
@@ -690,6 +771,8 @@ function addMissionCard(m = {}) {
       </div>
     </div>
   `;
+  setupDateModeToggle(card, '.mission-from', m.from);
+  setupDateModeToggle(card, '.mission-to', m.to);
   card.querySelector('.btn-remove-card').addEventListener('click', () => {
     if (!confirmDeleteAction('Xóa sứ vụ này?')) return;
     card.remove();
@@ -704,8 +787,8 @@ function readMissions() {
   return Array.from(document.querySelectorAll('.mission-card')).map((card) => ({
     name: card.querySelector('.mission-name')?.value.trim() || '',
     places: card.querySelector('.mission-places')?.value.trim() || '',
-    from: card.querySelector('.mission-from')?.value || null,
-    to: card.querySelector('.mission-to')?.value || null,
+    from: readMissionDateValue(card, '.mission-from'),
+    to: readMissionDateValue(card, '.mission-to'),
     appointmentLetters: JSON.parse(card.dataset.docs || '[]'),
   }));
 }
@@ -1129,3 +1212,74 @@ deletePriestBtn.addEventListener('click', async () => {
 });
 
 loadPriestProfile();
+
+// --- Unsaved changes guard ---
+let pendingNavigationUrl = null;
+let isSavingAndLeaving = false;
+
+function hasUnsavedChanges() {
+  if (!baselineSnapshot) return false;
+  return buildCurrentSnapshot() !== baselineSnapshot;
+}
+
+function showUnsavedModal(url) {
+  pendingNavigationUrl = url;
+  const modal = document.getElementById('unsavedChangesModal');
+  if (!modal) return;
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function hideUnsavedModal() {
+  const modal = document.getElementById('unsavedChangesModal');
+  if (!modal) return;
+  modal.setAttribute('aria-hidden', 'true');
+  pendingNavigationUrl = null;
+}
+
+document.getElementById('unsavedCancelBtn')?.addEventListener('click', () => {
+  hideUnsavedModal();
+});
+
+document.getElementById('unsavedLeaveBtn')?.addEventListener('click', () => {
+  const url = pendingNavigationUrl;
+  hideUnsavedModal();
+  baselineSnapshot = buildCurrentSnapshot();
+  if (url) window.location.href = url;
+});
+
+document.getElementById('unsavedSaveBtn')?.addEventListener('click', async () => {
+  const url = pendingNavigationUrl;
+  hideUnsavedModal();
+  try {
+    isSavingAndLeaving = true;
+    await uploadAvatarImage();
+    await uploadMissionDocuments();
+    const updated = await updatePriest(getPayloadFromForm());
+    fillForm(updated);
+    markSnapshotAsSaved();
+    setProfileMessage(`Đã lưu hồ sơ ${updated.fullName}.`, 'ok');
+    if (url) window.location.href = url;
+  } catch (error) {
+    isSavingAndLeaving = false;
+    setProfileMessage(error.message || 'Lỗi không mong muốn khi lưu hồ sơ.', 'error');
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (isSavingAndLeaving) return;
+  const link = e.target.closest('a[href]');
+  if (!link) return;
+  const href = link.getAttribute('href');
+  if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+  if (link.target === '_blank') return;
+  if (!hasUnsavedChanges()) return;
+  e.preventDefault();
+  showUnsavedModal(href);
+}, true);
+
+window.addEventListener('beforeunload', (e) => {
+  if (isSavingAndLeaving) return;
+  if (!hasUnsavedChanges()) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
