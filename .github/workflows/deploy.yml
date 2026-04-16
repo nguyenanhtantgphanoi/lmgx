@@ -29,7 +29,7 @@ jobs:
             --exclude "node_modules" \
             ./ /tmp/lmgx_stage/
           tar -czf release.tar.gz -C /tmp/lmgx_stage .
- 
+
       - name: Prepare server directories
         uses: appleboy/ssh-action@v1.0.3
         with:
