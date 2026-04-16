@@ -16,7 +16,8 @@ module.exports = fp(async function authPlugin(app) {
     secret: app.config.SESSION_SECRET,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: 'auto',
+      sameSite: 'lax',
       httpOnly: true,
       maxAge: 8 * 60 * 60 * 1000, // 8 hours
     },

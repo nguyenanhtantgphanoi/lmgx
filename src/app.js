@@ -11,6 +11,7 @@ const routeRegistry = require('./routes');
 function buildApp() {
   const app = Fastify({
     logger: true,
+    trustProxy: true,
   });
 
   app.register(envPlugin);
