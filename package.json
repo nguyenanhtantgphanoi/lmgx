@@ -1,5 +1,5 @@
 {
-  "name": "lmgx",
+  "name": "lmgx", 
   "version": "1.0.0",
   "description": "Fastify modular API with MongoDB",
   "main": "src/server.js",
