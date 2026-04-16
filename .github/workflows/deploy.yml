@@ -22,7 +22,14 @@ jobs:
 
       - name: Package release
         run: |
-          tar --exclude=".git" --exclude="node_modules" -czf release.tar.gz .
+          rm -rf dist
+          mkdir -p dist/release
+          rsync -a --delete \
+            --exclude ".git" \
+            --exclude "node_modules" \
+            --exclude "dist" \
+            ./ dist/release/
+          tar -czf dist/release.tar.gz -C dist/release .
 
       - name: Upload release to server
         uses: appleboy/scp-action@v0.1.7
@@ -31,7 +38,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
-          source: "release.tar.gz"
+          source: "dist/release.tar.gz"
           target: "/var/www/lmgx"
 
       - name: Deploy on server
@@ -45,10 +52,11 @@ jobs:
           script: |
             set -e
             APP_ROOT=/var/www/lmgx
+            ARCHIVE_PATH=$APP_ROOT/dist/release.tar.gz
             RELEASE_DIR=$APP_ROOT/releases/$GITHUB_SHA
             mkdir -p $RELEASE_DIR
-            tar -xzf $APP_ROOT/release.tar.gz -C $RELEASE_DIR
-            rm -f $APP_ROOT/release.tar.gz
+            tar -xzf $ARCHIVE_PATH -C $RELEASE_DIR
+            rm -f $ARCHIVE_PATH
 
             cd $RELEASE_DIR
             npm ci --omit=dev
