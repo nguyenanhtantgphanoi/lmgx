@@ -51,7 +51,7 @@ async function importPriestFromDocx(file) {
   });
 
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, 'Failed to import priest profile from DOCX'));
+    throw new Error(await readErrorMessage(response, 'Failed to import priest profile from DOCX'+response));
   }
 
   return response.json();
